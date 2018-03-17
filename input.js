@@ -2206,6 +2206,29 @@ const inputData = [
     }
 ];
 
+var rawArr = inputData.map((d) => {
+
+    // Make input and output array
+
+    return {
+        input: [
+            // (d["BankNifty"],
+            // d["Axis"],
+            d["Axis-bn"],
+            // d["ICICI"],
+            d["ICICI-bn"],
+            // d["HDFC"],
+            d["HDFC-bn"]
+        ],
+        output: [
+            d["BankNifty"]
+            // +(d["Axis"] > 0),
+            // +(d["ICICI"] > 0),
+            // +(d["HDFC"] > 0)
+        ]
+    };
+});
+
 var posnegData = inputData.map((d) => {
 
     // Make input and output array
@@ -2221,7 +2244,7 @@ var posnegData = inputData.map((d) => {
             +(d["HDFC-bn"] > 0)
         ],
         output: [
-            +(d["BankNifty"] > 0),
+            +(d["BankNifty"] > 0)
             // +(d["Axis"] > 0),
             // +(d["ICICI"] > 0),
             // +(d["HDFC"] > 0)
@@ -2253,12 +2276,14 @@ function getQuantArr(val) {
 }
 
 function getNumberFromQuant(arrBits) {
+    // console.log('inside getNumber', arrBits);
     var mapRange = {
       "001": 0.3,
       "010": 0.6,
       "100": 1.0
     };
-    return (arrBits[0] ? 1: -1) * mapRange[(arrBits.slice(1, 3).join(""))];
+    // console.log(arrBits.slice(1,4));
+    return (arrBits[0] ? 1: -1) * mapRange[(arrBits.slice(1, 4).join(""))];
 }
 
 var percData = inputData.map((d) => {
@@ -2285,7 +2310,8 @@ var percData = inputData.map((d) => {
 // console.log('Take this data', posnegData);
 
 module.exports = {
-    raw: inputData,
+    actual: inputData,
+    rawArr: rawArr,
     data : posnegData,
     percData: percData,
     getQuantArr: getQuantArr,

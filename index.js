@@ -30,6 +30,12 @@ var params = config.get("params");
 
 upstox.setToken(config.get("accessToken"));
 
+let Neuron = synaptic.Neuron,
+    Layer = synaptic.Layer,
+    Network = synaptic.Network,
+    Trainer = synaptic.Trainer,
+    Architect = synaptic.Architect;
+
 function fetchData() {
 
     let current_date = new Date();
@@ -130,17 +136,12 @@ function parseData(candleArray) {
 }
 
 /**
- * Test neural network for prediction of next candle after 180 candle input
+ * Test neural network for prediction of 181 th candle after 180 candle input
  * @param data
  * @param candles
  * @returns {Array}
  */
 function neuralize(data, candles) {
-    let Neuron = synaptic.Neuron,
-        Layer = synaptic.Layer,
-        Network = synaptic.Network,
-        Trainer = synaptic.Trainer,
-        Architect = synaptic.Architect;
 
     console.log(`Chalo candle banaye..Candles :: ${candles}`);
     // let inputLayer = new Layer(candles);
@@ -210,17 +211,11 @@ function neuralize(data, candles) {
 // postNegNetWork();
 percNetwork();
 
+
 /**
  * Test neural network for XOR
  */
 function neuralNet() {
-
-    let Neuron = synaptic.Neuron,
-        Layer = synaptic.Layer,
-        Network = synaptic.Network,
-        Trainer = synaptic.Trainer,
-        Architect = synaptic.Architect;
-
 
     var data = [
         {
@@ -269,11 +264,11 @@ function postNegNetWork() {
 
     // got positive-neg data, create input and output
 
-    let Neuron = synaptic.Neuron,
-        Layer = synaptic.Layer,
-        Network = synaptic.Network,
-        Trainer = synaptic.Trainer,
-        Architect = synaptic.Architect;
+    // let Neuron = synaptic.Neuron,
+    //     Layer = synaptic.Layer,
+    //     Network = synaptic.Network,
+    //     Trainer = synaptic.Trainer,
+    //     Architect = synaptic.Architect;
 
     const trainOptions = {
         rate: 0.1,
@@ -299,25 +294,22 @@ function postNegNetWork() {
     console.log('Show time!!!');
 
     // Now test the model
-    for(let i = inputData.data.length - 7; i < inputData.data.length; i++) {
-        console.log(inputData.data[i].input, ' -> ' , anotherNetwork.activate(inputData.data[i].input), ' -> ', inputData.data[i].output);
+    for(let i = inputData.data.length - 20; i < inputData.data.length; i++) {
+        console.log(inputData.data[i].input, ' -> AI: ' , anotherNetwork.activate(inputData.data[i].input), ' -> Actual: ', inputData.data[i].output);
     }
 
 }
 
-
+/**
+ * Get relative % change of BankNifty from 3 stocks
+ */
 function percNetwork() {
-    let Neuron = synaptic.Neuron,
-        Layer = synaptic.Layer,
-        Network = synaptic.Network,
-        Trainer = synaptic.Trainer,
-        Architect = synaptic.Architect;
 
     const trainOptions = {
         rate: 0.1,
         iterations: 20000,
         error: 0.003,
-        // shuffle: true,
+        shuffle: true,
         log: 1000,
         // cost: Trainer.cost.MSE
     };
@@ -329,30 +321,81 @@ function percNetwork() {
 
     console.log('Ye lo data', data);
 
-    data = data.slice(0, inputData.percData.length - 7);
+    data = data.slice(0, inputData.percData.length - 2);
 
     // console.log('Model is ready..', data, 'Total Data' ,data.length);
     console.log('Show time!!!');
-
-
     anotherTrainer.train(data, trainOptions);
     console.log('Model is ready..', data, 'Total Data' ,data.length);
 
 
     console.log('Show time!!!');
 
-    // Now test the model
-    for(let i = inputData.percData.length - 7; i < inputData.percData.length; i++) {
+    // // Randomly testing
+    // var arrTest = [108,95,65, 89, 135, 125];
+    // arrTest.forEach((i) => {
+    //     var arrRes = anotherNetwork.activate(inputData.percData[i].input);
+    //
+    //     arrRes = arrRes.map((val) => {
+    //         return Math.round(val);
+    //     });
+    //
+    //     console.log(inputData.percData[i].input, ' -> ' , arrRes , ' -> ', inputData.percData[i].output);
+    //     console.log('AI: value < ',  inputData.getNumberFromQuant(arrRes), 'Actual: ' , inputData.actual[i]["BankNifty"])
+    // });
+
+    // Now test the model, 108, 95,65, 135,,,, , 89,125 is wrong
+    // let i = 108;
+
+    // Sequential testing , [affected by less data and sequential bias]
+    for(let i = inputData.percData.length - 2; i < inputData.percData.length; i++) {
         var arrRes = anotherNetwork.activate(inputData.percData[i].input);
 
         arrRes = arrRes.map((val) => {
-            return val.toFixed(0);
+            return Math.round(val);
         });
 
-        console.log(inputData.percData[i].input, ' -> ' , arrRes , ' -> ', inputData.percData[i].output, inputData.getNumberFromQuant(arrRes), inputData.raw[i]);
+        console.log(inputData.percData[i].input, ' -> ' , arrRes , ' -> ', inputData.percData[i].output);
+        console.log('AI: value < ',  inputData.getNumberFromQuant(arrRes), 'Actual: ' , inputData.actual[i]["BankNifty"])
     }
-
-
 }
+
+/**
+ * Trying to get actual price range rather than binary quantization
+ * FAILED: Didn't work
+ */
+// function tryActual() {
+//     const trainOptions = {
+//         rate: 0.01,
+//         iterations: 20000,
+//         error: 0.0003,
+//         shuffle: true,
+//         log: 1000,
+//         // cost: Trainer.cost.MSE
+//     };
+//
+//     const anotherNetwork = new Architect.Perceptron(3, 5, 1);
+//     var anotherTrainer = new Trainer(anotherNetwork);
+//
+//     var data = inputData.rawArr;
+//
+//     console.log('Ye lo data', data);
+//
+//     data = data.slice(0, inputData.rawArr.length - 10);
+//
+//     // console.log('Model is ready..', data, 'Total Data' ,data.length);
+//     console.log('Show time!!!');
+//     anotherTrainer.train(data, trainOptions);
+//     console.log('Model is ready..', data, 'Total Data' ,data.length);
+//
+//     console.log('Show time!!!');
+//
+//
+//     // Now test the model
+//     // let i = 0;
+//     for(let i = inputData.rawArr.length - 30; i < inputData.rawArr.length; i++) {
+//         console.log(inputData.rawArr[i].input, ' -> AI: ' , anotherNetwork.activate(inputData.rawArr[i].input), ' -> Actual: ', inputData.rawArr[i].output);
+//     }
+// }
 
 
