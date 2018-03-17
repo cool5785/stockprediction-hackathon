@@ -1,4 +1,4 @@
-var posnegData = require("./input");
+var inputData = require("./input");
 var Upstox = require("upstox");
 var config = require("config");
 var moment = require("moment");
@@ -207,8 +207,8 @@ function neuralize(data, candles) {
 
 //fetchData();
 // neuralNet();
-postNegNetWork();
-
+// postNegNetWork();
+percNetwork();
 
 /**
  * Test neural network for XOR
@@ -287,9 +287,9 @@ function postNegNetWork() {
     const anotherNetwork = new Architect.Perceptron(6, 4, 1);
     var anotherTrainer = new Trainer(anotherNetwork);
 
-    var data = posnegData.data;
+    var data = inputData.data;
 
-    data = data.slice(0, posnegData.data.length - 7);
+    data = data.slice(0, inputData.data.length - 7);
 
 
     anotherTrainer.train(data, trainOptions);
@@ -299,9 +299,59 @@ function postNegNetWork() {
     console.log('Show time!!!');
 
     // Now test the model
-    for(let i = posnegData.data.length - 7; i < posnegData.data.length; i++) {
-        console.log(posnegData.data[i].input, ' -> ' , anotherNetwork.activate(posnegData.data[i].input), ' -> ', posnegData.data[i].output);
+    for(let i = inputData.data.length - 7; i < inputData.data.length; i++) {
+        console.log(inputData.data[i].input, ' -> ' , anotherNetwork.activate(inputData.data[i].input), ' -> ', inputData.data[i].output);
     }
+
+}
+
+
+function percNetwork() {
+    let Neuron = synaptic.Neuron,
+        Layer = synaptic.Layer,
+        Network = synaptic.Network,
+        Trainer = synaptic.Trainer,
+        Architect = synaptic.Architect;
+
+    const trainOptions = {
+        rate: 0.1,
+        iterations: 20000,
+        error: 0.003,
+        // shuffle: true,
+        log: 1000,
+        // cost: Trainer.cost.MSE
+    };
+
+    const anotherNetwork = new Architect.Perceptron(12, 8, 4);
+    var anotherTrainer = new Trainer(anotherNetwork);
+
+    var data = inputData.percData;
+
+    console.log('Ye lo data', data);
+
+    data = data.slice(0, inputData.percData.length - 7);
+
+    // console.log('Model is ready..', data, 'Total Data' ,data.length);
+    console.log('Show time!!!');
+
+
+    anotherTrainer.train(data, trainOptions);
+    console.log('Model is ready..', data, 'Total Data' ,data.length);
+
+
+    console.log('Show time!!!');
+
+    // Now test the model
+    for(let i = inputData.percData.length - 7; i < inputData.percData.length; i++) {
+        var arrRes = anotherNetwork.activate(inputData.percData[i].input);
+
+        arrRes = arrRes.map((val) => {
+            return val.toFixed(0);
+        });
+
+        console.log(inputData.percData[i].input, ' -> ' , arrRes , ' -> ', inputData.percData[i].output, inputData.getNumberFromQuant(arrRes), inputData.raw[i]);
+    }
+
 
 }
 

@@ -2224,7 +2224,7 @@ var posnegData = inputData.map((d) => {
             +(d["BankNifty"] > 0),
             // +(d["Axis"] > 0),
             // +(d["ICICI"] > 0),
-            // +(d["HDFC"] > 0),
+            // +(d["HDFC"] > 0)
         ]
     };
 });
@@ -2249,6 +2249,16 @@ function getQuantArr(val) {
     } else {
         outputBits.push(1, 0 , 0);
     }
+    return outputBits;
+}
+
+function getNumberFromQuant(arrBits) {
+    var mapRange = {
+      "001": 0.3,
+      "010": 0.6,
+      "100": 1.0
+    };
+    return (arrBits[0] ? 1: -1) * mapRange[(arrBits.slice(1, 3).join(""))];
 }
 
 var percData = inputData.map((d) => {
@@ -2256,6 +2266,7 @@ var percData = inputData.map((d) => {
     // Get max of current row
     var maxOfRow = Math.max.apply(null, [d["Axis"],d["ICICI"],d["HDFC"],d["BankNifty"]]);
 
+    console.log('Max value = ', maxOfRow);
     // Get converted = value/max
 
     var inputArr = [], outputArr = [];
@@ -2263,7 +2274,7 @@ var percData = inputData.map((d) => {
     inputArr = inputArr.concat(getQuantArr(d["ICICI"] / maxOfRow));
     inputArr = inputArr.concat(getQuantArr(d["HDFC"] / maxOfRow));
 
-    outputArr = inputArr.concat(getQuantArr(d["Axis"] / maxOfRow));
+    outputArr = outputArr.concat(getQuantArr(d["BankNifty"] / maxOfRow));
 
     return {
         input: inputArr,
@@ -2271,9 +2282,12 @@ var percData = inputData.map((d) => {
     };
 });
 
-
 // console.log('Take this data', posnegData);
 
 module.exports = {
-    data : posnegData
+    raw: inputData,
+    data : posnegData,
+    percData: percData,
+    getQuantArr: getQuantArr,
+    getNumberFromQuant: getNumberFromQuant
 };
