@@ -1,0 +1,37 @@
+{
+  "params": {
+    "apiSecret": "7vfir5c0c3",
+    "code": "97fce5200160b17a47e2acf11dfed95cac897395",
+    "grant_type": "authorization_code",
+    "redirect_uri": "http://127.0.0.1:5500"
+  },
+  "api-key": "JgjmcNmpJW40z0xbxJYp4BbkaYvUAo41QlFjBab5",
+  "accessToken": "04b86fa321e84e05dfa32600368a92f3fe6f972f",
+  "your_redirect_uri": "http://127.0.0.1:5500",
+  "serviceConfig": {
+    "host": "https://api.upstox.com",
+    "routes": {
+      "authorize": "/index/dialog/authorize",
+      "accessToken": "/index/oauth/token",
+      "profile": "/index/profile",
+      "masterContract": "/index/master-contract/{exchange}",
+      "logout": "/index/logout",
+      "holdings": "/live/profile/holdings",
+      "balance": "/live/profile/balance",
+      "positions": "/live/profile/positions",
+      "placeOrder": "/live/orders",
+      "getOrders": "/live/orders",
+      "getOrdersInfo": "/live/orders/{order_ids}",
+      "modifyOrder": "/live/orders/{order_id}/{parent_order_id}",
+      "cancelOrder": "/live/orders/{order_id}/{parent_order_id}",
+      "tradesInfo": "/live/orders/{order_id}/trades",
+      "liveFeed": "/live/feed/now/{exchange}/{symbol}/{type}",
+      "liveFeedSubscribe": "/live/feed/sub/{type}/{exchange}",
+      "liveFeedUnsubscribe": "/live/feed/unsub/{type}/{exchange}",
+      "OHLC": "/historical/ohlc/{exchange}/{symbol}"
+    },
+    "socketEndpoint": "wss://ws-api.upstox.com"
+  }
+}
+
+
