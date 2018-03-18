@@ -11,6 +11,7 @@
   "dependencies": {
     "async": "^2.6.0",
     "config": "^1.30.0",
+    "express": "^4.16.3",
     "moment": "^2.21.0",
     "synaptic": "^1.1.4",
     "upstox": "^1.2.3"

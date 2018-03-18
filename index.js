@@ -7,6 +7,35 @@ const synaptic = require("synaptic");
 var input
 // const candles = 50;
 
+const express = require("express"),
+    app = express();
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.get("/neuralNet", (req, res) => {
+    if (req.query.data) {
+        req.query.data = JSON.parse(req.query.data)
+    }
+    res.send("server is up and running");
+});
+
+app.get("/postNegNetWork", (req, res) => {
+    if (req.query.data) {
+        req.query.data = JSON.parse(req.query.data)
+    }
+    res.send("server is up and running");
+});
+
+app.get("/percNetwork", (req, res) => {
+    if (req.query.data) {
+        req.query.data = JSON.parse(req.query.data)
+    }
+    res.send("server is up and running");
+});
+
+app.listen(8000);
+
 var upstox = new Upstox(config.get("api-key"));
 var loginUrl = upstox.getLoginUri(config.get("your_redirect_uri"));
 
