@@ -4,7 +4,7 @@ var config = require("config");
 var moment = require("moment");
 var async = require("async");
 const synaptic = require("synaptic");
-var input
+var input;
 // const candles = 50;
 
 const express = require("express"),
@@ -13,6 +13,9 @@ const express = require("express"),
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+let percAI, posNegAI;
+
+
 app.get("/neuralNet", (req, res) => {
     if (req.query.data) {
         req.query.data = JSON.parse(req.query.data)
@@ -20,18 +23,63 @@ app.get("/neuralNet", (req, res) => {
     res.send("server is up and running");
 });
 
-app.get("/postNegNetWork", (req, res) => {
+app.get("/posNegNetwork", (req, res) => {
     if (req.query.data) {
         req.query.data = JSON.parse(req.query.data)
     }
-    res.send("server is up and running");
+
+    var result = [];
+
+    // Now test the model
+    for(let i = inputData.data.length - 20; i < inputData.data.length; i++) {
+        console.log(inputData.data[i].input, ' -> AI: ' , posNegAI.activate(inputData.data[i].input), ' -> Actual: ', inputData.data[i].output);
+        result.push({
+            inputData: inputData.data[i].input,
+            AI: posNegAI.activate(inputData.data[i].input)[0].toFixed(4),
+            expected: inputData.data[i].output
+        });
+    }
+    res.send(result);
 });
 
 app.get("/percNetwork", (req, res) => {
     if (req.query.data) {
         req.query.data = JSON.parse(req.query.data)
     }
-    res.send("server is up and running");
+
+    // // Randomly testing
+    // var arrTest = [108,95,65, 89, 135, 125];
+    // arrTest.forEach((i) => {
+    //     var arrRes = anotherNetwork.activate(inputData.percData[i].input);
+    //
+    //     arrRes = arrRes.map((val) => {
+    //         return Math.round(val);
+    //     });
+    //
+    //     console.log(inputData.percData[i].input, ' -> ' , arrRes , ' -> ', inputData.percData[i].output);
+    //     console.log('AI: value < ',  inputData.getNumberFromQuant(arrRes), 'Actual: ' , inputData.actual[i]["BankNifty"])
+    // });
+
+    // Now test the model, 108, 95,65, 135,,,, , 89,125 is wrong
+    // let i = 108;
+    var result = [];
+    // Sequential testing , [affected by less data and sequential bias]
+    for(let i = inputData.percData.length - 2; i < inputData.percData.length; i++) {
+        var arrRes = percAI.activate(inputData.percData[i].input);
+
+        arrRes = arrRes.map((val) => {
+            return Math.round(val);
+        });
+
+        console.log(inputData.percData[i].input, ' -> ' , arrRes , ' -> ', inputData.percData[i].output);
+        console.log('AI: value < ',  inputData.getNumberFromQuant(arrRes), 'Actual: ' , inputData.actual[i]["BankNifty"]);
+
+         result.push({
+            AIBankNifty: inputData.getNumberFromQuant(arrRes),
+            expected: inputData.actual[i]["BankNifty"]
+        });
+    }
+    res.send(result);
 });
 
 app.listen(8000);
@@ -187,7 +235,7 @@ function neuralize(data, candles) {
     // });
 
     const anotherNetwork = new Architect.Perceptron(candles, candles - 50, candles - 100, 2);
-    var anotherTrainer = new Trainer(anotherNetwork);
+    var trainer = new Trainer(anotherNetwork);
     const trainOptions = {
         rate: 0.1,
         iterations: 20000,
@@ -201,7 +249,7 @@ function neuralize(data, candles) {
 
     const data2 = data.slice(0, data.length - 1);
 
-    let trainingRes = anotherTrainer.train(data2, trainOptions);
+    let trainingRes = trainer.train(data2, trainOptions);
     console.log('Model train ho gaya', trainingRes);
 
     let res = [];
@@ -237,7 +285,7 @@ function neuralize(data, candles) {
 
 //fetchData();
 // neuralNet();
-// postNegNetWork();
+posNegNetwork();
 percNetwork();
 
 
@@ -275,9 +323,9 @@ function neuralNet() {
     };
 
     const anotherNetwork = new Architect.Perceptron(2, 5, 1);
-    var anotherTrainer = new Trainer(anotherNetwork);
+    var trainer = new Trainer(anotherNetwork);
 
-    anotherTrainer.train(data, trainOptions);
+    trainer.train(data, trainOptions);
 
     console.log(anotherNetwork.activate([0,0]));
     console.log(anotherNetwork.activate([0,1]));
@@ -289,7 +337,7 @@ function neuralNet() {
 /**
  * Predict whether bank nifty will be positive or negative based on ICICI, Axis and HDFC bank input
  */
-function postNegNetWork() {
+function posNegNetwork() {
 
     // got positive-neg data, create input and output
 
@@ -299,7 +347,7 @@ function postNegNetWork() {
     //     Trainer = synaptic.Trainer,
     //     Architect = synaptic.Architect;
 
-    const trainOptions = {
+    const posNegTrainOptions = {
         rate: 0.1,
         iterations: 20000,
         error: 0.003,
@@ -308,25 +356,16 @@ function postNegNetWork() {
         // cost: Trainer.cost.MSE
     };
 
-    const anotherNetwork = new Architect.Perceptron(6, 4, 1);
-    var anotherTrainer = new Trainer(anotherNetwork);
+    posNegAI = new Architect.Perceptron(6, 4, 1);
+    var trainer = new Trainer(posNegAI);
 
-    var data = inputData.data;
-
-    data = data.slice(0, inputData.data.length - 7);
-
-
-    anotherTrainer.train(data, trainOptions);
-    console.log('Model is ready..', data, 'Total Data' ,data.length);
+    // var posNegTrainingData = inputData.data;
+    var posNegTrainingData = inputData.data.slice(0, inputData.data.length - 7);
+    trainer.train(posNegTrainingData, posNegTrainOptions);
+    console.log('Model is ready..', posNegTrainingData, 'Total Data' ,posNegTrainingData.length);
 
 
     console.log('Show time!!!');
-
-    // Now test the model
-    for(let i = inputData.data.length - 20; i < inputData.data.length; i++) {
-        console.log(inputData.data[i].input, ' -> AI: ' , anotherNetwork.activate(inputData.data[i].input), ' -> Actual: ', inputData.data[i].output);
-    }
-
 }
 
 /**
@@ -343,50 +382,18 @@ function percNetwork() {
         // cost: Trainer.cost.MSE
     };
 
-    const anotherNetwork = new Architect.Perceptron(12, 8, 4);
-    var anotherTrainer = new Trainer(anotherNetwork);
+    percAI = new Architect.Perceptron(12, 8, 4);
+    var trainer = new Trainer(percAI);
 
-    var data = inputData.percData;
+    var percTrainingData = inputData.percData;
 
-    console.log('Ye lo data', data);
+    console.log('Ye lo data', percTrainingData);
 
-    data = data.slice(0, inputData.percData.length - 2);
+    percTrainingData = percTrainingData.slice(0, inputData.percData.length - 2);
+    trainer.train(percTrainingData, trainOptions);
 
-    // console.log('Model is ready..', data, 'Total Data' ,data.length);
+    console.log('Model is ready..', percTrainingData, 'Total Data' ,percTrainingData.length);
     console.log('Show time!!!');
-    anotherTrainer.train(data, trainOptions);
-    console.log('Model is ready..', data, 'Total Data' ,data.length);
-
-
-    console.log('Show time!!!');
-
-    // // Randomly testing
-    // var arrTest = [108,95,65, 89, 135, 125];
-    // arrTest.forEach((i) => {
-    //     var arrRes = anotherNetwork.activate(inputData.percData[i].input);
-    //
-    //     arrRes = arrRes.map((val) => {
-    //         return Math.round(val);
-    //     });
-    //
-    //     console.log(inputData.percData[i].input, ' -> ' , arrRes , ' -> ', inputData.percData[i].output);
-    //     console.log('AI: value < ',  inputData.getNumberFromQuant(arrRes), 'Actual: ' , inputData.actual[i]["BankNifty"])
-    // });
-
-    // Now test the model, 108, 95,65, 135,,,, , 89,125 is wrong
-    // let i = 108;
-
-    // Sequential testing , [affected by less data and sequential bias]
-    for(let i = inputData.percData.length - 2; i < inputData.percData.length; i++) {
-        var arrRes = anotherNetwork.activate(inputData.percData[i].input);
-
-        arrRes = arrRes.map((val) => {
-            return Math.round(val);
-        });
-
-        console.log(inputData.percData[i].input, ' -> ' , arrRes , ' -> ', inputData.percData[i].output);
-        console.log('AI: value < ',  inputData.getNumberFromQuant(arrRes), 'Actual: ' , inputData.actual[i]["BankNifty"])
-    }
 }
 
 /**
@@ -404,7 +411,7 @@ function percNetwork() {
 //     };
 //
 //     const anotherNetwork = new Architect.Perceptron(3, 5, 1);
-//     var anotherTrainer = new Trainer(anotherNetwork);
+//     var trainer = new Trainer(anotherNetwork);
 //
 //     var data = inputData.rawArr;
 //
@@ -414,7 +421,7 @@ function percNetwork() {
 //
 //     // console.log('Model is ready..', data, 'Total Data' ,data.length);
 //     console.log('Show time!!!');
-//     anotherTrainer.train(data, trainOptions);
+//     trainer.train(data, trainOptions);
 //     console.log('Model is ready..', data, 'Total Data' ,data.length);
 //
 //     console.log('Show time!!!');
